@@ -1,0 +1,27 @@
+{
+  "name": "elm-attribute-builder",
+  "version": "1.0.0",
+  "description": "Build lists of HTML attributes in a modular manner",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "elm": "^0.18.0",
+    "elm-test": "^0.18.0"
+  },
+  "scripts": {
+    "test": "elm-test tests/src/Main.elm --compiler ../node_modules/.bin/elm-make"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gizra/elm-attribute-builder.git"
+  },
+  "author": "Ryan Rempel <ryan@gizra.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Gizra/elm-attribute-builder/issues"
+  },
+  "homepage": "https://github.com/Gizra/elm-attribute-builder#readme"
+}
