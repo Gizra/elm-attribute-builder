@@ -62,6 +62,146 @@ testAddClass =
         ]
 
 
+testAddClassList : Test
+testAddClassList =
+    describe "addClassList"
+        [ test "add single class" <|
+            \_ ->
+                attributeBuilder
+                    |> addClassList [ ( "classy", True ) ]
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ className "classy" ]
+        , test "add two classes" <|
+            \_ ->
+                attributeBuilder
+                    |> addClassList
+                        [ ( "classy", True )
+                        , ( "second-class", True )
+                        ]
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ classes
+                            [ "classy"
+                            , "second-class"
+                            ]
+                        ]
+        , test "add class twice" <|
+            \_ ->
+                attributeBuilder
+                    |> addClassList
+                        [ ( "classy", True )
+                        , ( "classy", True )
+                        ]
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ className "classy" ]
+        , test "add some true some false" <|
+            \_ ->
+                attributeBuilder
+                    |> addClassList
+                        [ ( "classy", True )
+                        , ( "second-class", False )
+                        ]
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ className "classy" ]
+        , test "false doesn't remove" <|
+            \_ ->
+                attributeBuilder
+                    |> addClass "second-class"
+                    |> addClassList
+                        [ ( "classy", True )
+                        , ( "second-class", False )
+                        ]
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ classes
+                            [ "classy"
+                            , "second-class"
+                            ]
+                        ]
+        ]
+
+
+testApplyClassList : Test
+testApplyClassList =
+    describe "applyClassList"
+        [ test "add single class" <|
+            \_ ->
+                attributeBuilder
+                    |> applyClassList [ ( "classy", True ) ]
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ className "classy" ]
+        , test "add two classes" <|
+            \_ ->
+                attributeBuilder
+                    |> applyClassList
+                        [ ( "classy", True )
+                        , ( "second-class", True )
+                        ]
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ classes
+                            [ "classy"
+                            , "second-class"
+                            ]
+                        ]
+        , test "add class twice" <|
+            \_ ->
+                attributeBuilder
+                    |> applyClassList
+                        [ ( "classy", True )
+                        , ( "classy", True )
+                        ]
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ className "classy" ]
+        , test "add some true some false" <|
+            \_ ->
+                attributeBuilder
+                    |> applyClassList
+                        [ ( "classy", True )
+                        , ( "second-class", False )
+                        ]
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ className "classy" ]
+        , test "false actually removes" <|
+            \_ ->
+                attributeBuilder
+                    |> addClass "second-class"
+                    |> applyClassList
+                        [ ( "classy", True )
+                        , ( "second-class", False )
+                        ]
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ className "classy" ]
+        ]
+
+
 testPlainAttributeBuilder : Test
 testPlainAttributeBuilder =
     test "A plain attributeBuilder should produce no attributes" <|
@@ -111,6 +251,8 @@ all : Test
 all =
     describe "AttributeBuilder tests"
         [ testAddClass
+        , testAddClassList
+        , testApplyClassList
         , testPlainAttributeBuilder
         , testRemoveClass
         ]
