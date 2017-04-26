@@ -1,6 +1,6 @@
 port module Main exposing (..)
 
-import Expect
+import Expect exposing (Expectation)
 import Html exposing (Html, Attribute)
 import Html.AttributeBuilder exposing (..)
 import Json.Decode exposing (Value)
@@ -247,6 +247,84 @@ testRemoveClass =
         ]
 
 
+{-| Check if the `toString` representation of the HTML contains
+the specified style. This doesn't seem to be supported by `elm-html-test`
+itself.
+-}
+containsStyle : String -> String -> Query.Single -> Expectation
+containsStyle styleName styleValue html =
+    let
+        -- This is a bit hack-ish, but the best we can do without support
+        -- from elm-html-test
+        expectedText =
+            "(" ++ toString styleName ++ "," ++ toString styleValue ++ ")"
+    in
+        if (String.contains expectedText (toString html)) then
+            Expect.pass
+        else
+            Expect.fail <|
+                "Did not find style '"
+                    ++ styleName
+                    ++ "', '"
+                    ++ styleValue
+                    ++ "'"
+
+
+doesNotContainStyle : String -> String -> Query.Single -> Expectation
+doesNotContainStyle styleName styleValue html =
+    let
+        unexpectedText =
+            "(" ++ toString styleName ++ "," ++ toString styleValue ++ ")"
+    in
+        if (String.contains unexpectedText (toString html)) then
+            Expect.fail <|
+                "Found unexpected style '"
+                    ++ styleName
+                    ++ "', '"
+                    ++ styleValue
+                    ++ "'"
+        else
+            Expect.pass
+
+
+testAddStyle : Test
+testAddStyle =
+    describe "addStyle"
+        [ test "add single style" <|
+            \_ ->
+                attributeBuilder
+                    |> addStyle "position" "absolute"
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> containsStyle "position" "absolute"
+        , test "add second style" <|
+            \_ ->
+                attributeBuilder
+                    |> addStyle "position" "absolute"
+                    |> addStyle "z-index" "3000"
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Expect.all
+                        [ containsStyle "position" "absolute"
+                        , containsStyle "z-index" "3000"
+                        ]
+        , test "add style twice replaces" <|
+            \_ ->
+                attributeBuilder
+                    |> addStyle "position" "absolute"
+                    |> addStyle "position" "relative"
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Expect.all
+                        [ containsStyle "position" "relative"
+                        , doesNotContainStyle "position" "absolute"
+                        ]
+        ]
+
+
 all : Test
 all =
     describe "AttributeBuilder tests"
@@ -255,4 +333,5 @@ all =
         , testApplyClassList
         , testPlainAttributeBuilder
         , testRemoveClass
+        , testAddStyle
         ]
