@@ -102,7 +102,7 @@ toAttributes (AttributeBuilder builder) =
 
 {-| Add an attribute to an attribute builder.
 
-Note that you should the more specific functions for classes and styles, since
+Note that you should use the more specific functions for classes and styles, since
 they combine classes and styles in a predictable manner.
 -}
 addAttribute : Attribute msg -> AttributeBuilder msg -> AttributeBuilder msg
