@@ -325,6 +325,42 @@ testAddStyle =
         ]
 
 
+testRemoveStyle : Test
+testRemoveStyle =
+    describe "removeStyle"
+        [ test "remove style that was added" <|
+            \_ ->
+                attributeBuilder
+                    |> addStyle "position" "absolute"
+                    |> removeStyle "position"
+                    |> toAttributes
+                    |> List.length
+                    |> Expect.equal 0
+        , test "remove one of two styles" <|
+            \_ ->
+                attributeBuilder
+                    |> addStyle "position" "absolute"
+                    |> addStyle "z-index" "10000"
+                    |> removeStyle "z-index"
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Expect.all
+                        [ containsStyle "position" "absolute"
+                        , doesNotContainStyle "z-index" "10000"
+                        ]
+        , test "remove style that wasn't added" <|
+            \_ ->
+                attributeBuilder
+                    |> addStyle "position" "absolute"
+                    |> removeStyle "not-there"
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> containsStyle "position" "absolute"
+        ]
+
+
 all : Test
 all =
     describe "AttributeBuilder tests"
@@ -334,4 +370,5 @@ all =
         , testPlainAttributeBuilder
         , testRemoveClass
         , testAddStyle
+        , testRemoveStyle
         ]
