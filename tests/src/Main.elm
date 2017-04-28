@@ -325,6 +325,48 @@ testAddStyle =
         ]
 
 
+testAddStyles : Test
+testAddStyles =
+    describe "addStyles"
+        [ test "add single style" <|
+            \_ ->
+                attributeBuilder
+                    |> addStyles [ ( "position", "absolute" ) ]
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> containsStyle "position" "absolute"
+        , test "add two styles" <|
+            \_ ->
+                attributeBuilder
+                    |> addStyles
+                        [ ( "position", "absolute" )
+                        , ( "z-index", "100" )
+                        ]
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Expect.all
+                        [ containsStyle "position" "absolute"
+                        , containsStyle "z-index" "100"
+                        ]
+        , test "add style twice" <|
+            \_ ->
+                attributeBuilder
+                    |> addStyles
+                        [ ( "position", "absolute" )
+                        , ( "position", "relative" )
+                        ]
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Expect.all
+                        [ containsStyle "position" "relative"
+                        , doesNotContainStyle "position" "absolute"
+                        ]
+        ]
+
+
 testRemoveStyle : Test
 testRemoveStyle =
     describe "removeStyle"
@@ -370,5 +412,6 @@ all =
         , testPlainAttributeBuilder
         , testRemoveClass
         , testAddStyle
+        , testAddStyles
         , testRemoveStyle
         ]
