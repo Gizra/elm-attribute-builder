@@ -2,6 +2,7 @@ port module Main exposing (..)
 
 import Expect exposing (Expectation)
 import Html exposing (Html, Attribute)
+import Html.Attributes
 import Html.AttributeBuilder exposing (..)
 import Json.Decode exposing (Value)
 import Test exposing (..)
@@ -21,6 +22,63 @@ main =
 vid : List (Html msg) -> List (Attribute msg) -> Html msg
 vid =
     flip Html.div
+
+
+testAddAttribute : Test
+testAddAttribute =
+    describe "addAttribute"
+        [ test "add single attribute" <|
+            \_ ->
+                attributeBuilder
+                    |> addAttribute (Html.Attributes.src "index.html")
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ attribute "src" "index.html" ]
+        , test "add second attribute" <|
+            \_ ->
+                attributeBuilder
+                    |> addAttribute (Html.Attributes.src "index.html")
+                    |> addAttribute (Html.Attributes.href "page.html")
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ attribute "src" "index.html"
+                        , attribute "href" "page.html"
+                        ]
+        ]
+
+
+testAddAttributes : Test
+testAddAttributes =
+    describe "addAttributes"
+        [ test "add single attribute" <|
+            \_ ->
+                attributeBuilder
+                    |> addAttributes
+                        [ Html.Attributes.src "index.html" ]
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ attribute "src" "index.html" ]
+        , test "add second attribute" <|
+            \_ ->
+                attributeBuilder
+                    |> addAttributes
+                        [ Html.Attributes.src "index.html"
+                        , Html.Attributes.href "page.html"
+                        ]
+                    |> toAttributes
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ attribute "src" "index.html"
+                        , attribute "href" "page.html"
+                        ]
+        ]
 
 
 testAddClass : Test
@@ -406,11 +464,13 @@ testRemoveStyle =
 all : Test
 all =
     describe "AttributeBuilder tests"
-        [ testAddClass
-        , testAddClassList
-        , testApplyClassList
-        , testPlainAttributeBuilder
+        [ testPlainAttributeBuilder
+        , testAddAttribute
+        , testAddAttributes
+        , testAddClass
         , testRemoveClass
+        , testApplyClassList
+        , testAddClassList
         , testAddStyle
         , testAddStyles
         , testRemoveStyle
