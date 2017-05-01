@@ -24,6 +24,71 @@ vid =
     flip Html.div
 
 
+hasOne : List Selector -> Query.Single -> Expectation
+hasOne selectors =
+    Query.findAll selectors >> Query.count (Expect.equal 1)
+
+
+hasNone : List Selector -> Query.Single -> Expectation
+hasNone selectors =
+    Query.findAll selectors >> Query.count (Expect.equal 0)
+
+
+{-| This tests various assertions about the behaviour of lists of
+    attributes if you don't use AttributeBuilder.
+-}
+testAlternatives : Test
+testAlternatives =
+    describe "Alternatives to AttributeBuilder"
+        [ test "adding class twice uses both classes" <|
+            -- The behaviour here changed between Elm 0.17 and Elm 0.18.
+            -- In Elm 0.17, the last class "won", but in Elm 0.18 both
+            -- classes get used.
+            \_ ->
+                [ Html.Attributes.class "first-class"
+                , Html.Attributes.class "second-class"
+                ]
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Query.has
+                        [ classes [ "first-class", "second-class" ] ]
+        , test "adding different styles twice uses both" <|
+            \_ ->
+                [ Html.Attributes.style [ ( "width", "300px" ) ]
+                , Html.Attributes.style [ ( "height", "400px" ) ]
+                ]
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Expect.all
+                        [ containsStyle "width" "300px"
+                        , containsStyle "height" "400px"
+                        ]
+        , test "adding same style twice uses last value" <|
+            \_ ->
+                [ Html.Attributes.style [ ( "width", "300px" ) ]
+                , Html.Attributes.style [ ( "width", "400px" ) ]
+                ]
+                    |> vid []
+                    |> Query.fromHtml
+                    |> Expect.all
+                        [ containsStyle "width" "400px"
+                        , doesNotContainStyle "width" "300px"
+                        ]
+        , test "adding same attribute twice uses last value" <|
+            \_ ->
+                [ Html.Attributes.href "index1.html"
+                , Html.Attributes.href "index2.html"
+                ]
+                    |> vid []
+                    |> (\wrap -> Html.div [] [ wrap ])
+                    |> Query.fromHtml
+                    |> Expect.all
+                        [ hasOne [ attribute "href" "index2.html" ]
+                        , hasNone [ attribute "href" "index1.html" ]
+                        ]
+        ]
+
+
 testAddAttribute : Test
 testAddAttribute =
     describe "addAttribute"
@@ -464,7 +529,8 @@ testRemoveStyle =
 all : Test
 all =
     describe "AttributeBuilder tests"
-        [ testPlainAttributeBuilder
+        [ testAlternatives
+        , testPlainAttributeBuilder
         , testAddAttribute
         , testAddAttributes
         , testAddClass
