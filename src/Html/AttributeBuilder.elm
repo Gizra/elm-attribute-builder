@@ -15,18 +15,64 @@ module Html.AttributeBuilder
         , removeStyle
         )
 
-{-| Bulding up lists of `Html.Attribute` values in a modular way
-can be a bit tricky, because once you create an attribute with, say, `class`,
-`classList` or `style`, you can't introspect on the `Attribute` later, for
-instance to add another class.
+{-| Elm's [Html] module constructs HTML nodes by asking you to provide,
+among other things, a list of HTML attributes. So, you might typically
+see something like:
 
-So, this provides a type that you can use to gradually build up some
-attributes.
+[Html]: http://package.elm-lang.org/packages/elm-lang/html/latest
+
+    div
+        [ class "ui button primary"
+        , onClick DoLogin
+        ]
+        [ text "Login" ]
+
+Sometimes it is convenient to build up the list of attributes through
+a series of computations. One can, of course, simply use functions
+that return lists of attributes and combine them together ... perhaps
+something like this:
+
+    div
+        ( List.concat
+            [ computation1 model
+            , computation2 user
+            , [ class "another-class"
+              , style [("position", "absolute")]
+              ]
+            ]
+        )
+        [ text "Login" ]
+
+And, in Elm 0.18, Elm does some things you might expect with this:
+
+  - If you provide multiple "class" attributes, they get combined appropriately.
+    (This wasn't the case in Elm 0.17, which was actually the original motivation
+    for this package).
+
+  - If you provide multiple "style" attributes, they are all used.
+
+However, sometimes you might want to build attributes up using types that
+give you some more fine-tuned control. That is the purpose of this package.
+It allows you to something like this:
+
+    import Html.AttributeBuilder as AB
+
+    AB.attributeBuilder
+        |> AB.union (computation1 model)
+        |> AB.union (computation2 user)
+        |> AB.addClass "another-class"
+        |> AB.removeClass "unwanted-class"
+        |> AB.addStyle "position" "absolute"
+        |> AB.toAttributes
+
+What you get at the end of such a pipeline is a `List Html.Attribute`,
+constructed in a way that you might enjoy.
 
 @docs AttributeBuilder, attributeBuilder, union, toAttributes
 @docs addAttribute, addAttributes
 @docs addClass, removeClass, applyClassList, addClassList
 @docs addStyle, addStyles, removeStyle
+
 -}
 
 import Dict exposing (Dict)
@@ -47,7 +93,14 @@ type AttributeBuilder msg
         }
 
 
-{-| An empty `AttributeBuilder`, with no attributes yet.
+{-| An empty `AttributeBuilder`, with no attributes yet. You will often
+want to start with this.
+
+    attributeBuilder
+        |> addClass "a-class"
+        |> addStyle "background-color" "red"
+        |> toAttributes
+
 -}
 attributeBuilder : AttributeBuilder msg
 attributeBuilder =
@@ -102,8 +155,17 @@ toAttributes (AttributeBuilder builder) =
 
 {-| Add an attribute to an attribute builder.
 
-Note that you should use the more specific functions for classes and styles, since
-they combine classes and styles in a predictable manner.
+This is particularly meant for event handlers (e.g. `on "click" ...`), for which
+we don't provide any special support.
+
+Where possible, you should prefer the more specific functions for classes and
+styles, since they combine classes and styles in a more predictable manner.
+
+    attributeBuilder
+        |> addClass "login"
+        |> addAttribute (onClick Login)
+        |> toAttributes
+
 -}
 addAttribute : Attribute msg -> AttributeBuilder msg -> AttributeBuilder msg
 addAttribute attribute (AttributeBuilder builder) =
@@ -113,8 +175,12 @@ addAttribute attribute (AttributeBuilder builder) =
 
 {-| Add a list of attributes to an attribute builder.
 
-For clsses and styles, you should use the more specific functions, since they
-combine classes and styles more predictably.
+This is particularly meant for event handlers (e.g. `on "click" ...`), for which
+we don't provide any special support.
+
+Where possible, you should prefer the more specific functions for classes and
+styles, since they combine classes and styles in a more predictable manner.
+
 -}
 addAttributes : List (Attribute msg) -> AttributeBuilder msg -> AttributeBuilder msg
 addAttributes attributes (AttributeBuilder builder) =
@@ -159,7 +225,7 @@ applyClassList classes (AttributeBuilder builder) =
             { builder | classes = newClasses }
 
 
-{-| Like `applyClassList`, but only adds, never removes.
+{-| Like `applyClassList`, but only adds classes, never removes.
 -}
 addClassList : List ( String, Bool ) -> AttributeBuilder msg -> AttributeBuilder msg
 addClassList classes (AttributeBuilder builder) =
@@ -179,7 +245,14 @@ addClassList classes (AttributeBuilder builder) =
             { builder | classes = newClasses }
 
 
-{-| Add a value for a style, replacing any previous value with that key.
+{-| Add a value for a style, replacing any previous value for the style with that name.
+The first parameter is the name of the style, and the second is its value.
+
+    attributeBuilder
+        |> addClass "some-class"
+        |> addStyle "background-color" "red"
+        |> toAttributes
+
 -}
 addStyle : String -> String -> AttributeBuilder msg -> AttributeBuilder msg
 addStyle name value (AttributeBuilder builder) =
@@ -187,7 +260,7 @@ addStyle name value (AttributeBuilder builder) =
         { builder | styles = Dict.insert name value builder.styles }
 
 
-{-| Add several styles at once.
+{-| Add several styles at once, analogous to `Html.Attribute.style`.
 -}
 addStyles : List ( String, String ) -> AttributeBuilder msg -> AttributeBuilder msg
 addStyles styleList (AttributeBuilder builder) =
