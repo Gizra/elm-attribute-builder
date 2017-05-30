@@ -1,4 +1,4 @@
-port module Main exposing (..)
+module Tests exposing (..)
 
 import Expect exposing (Expectation)
 import Html exposing (Html, Attribute)
@@ -8,15 +8,6 @@ import Json.Decode exposing (Value)
 import Test exposing (..)
 import Test.Html.Query as Query
 import Test.Html.Selector exposing (..)
-import Test.Runner.Node exposing (TestProgram, run)
-
-
-port emit : ( String, Value ) -> Cmd msg
-
-
-main : TestProgram
-main =
-    run emit all
 
 
 vid : List (Html msg) -> List (Attribute msg) -> Html msg
@@ -24,18 +15,18 @@ vid =
     flip Html.div
 
 
-hasOne : List Selector -> Query.Single -> Expectation
+hasOne : List Selector -> Query.Single msg -> Expectation
 hasOne selectors =
     Query.findAll selectors >> Query.count (Expect.equal 1)
 
 
-hasNone : List Selector -> Query.Single -> Expectation
+hasNone : List Selector -> Query.Single msg -> Expectation
 hasNone selectors =
     Query.findAll selectors >> Query.count (Expect.equal 0)
 
 
 {-| This tests various assertions about the behaviour of lists of
-    attributes if you don't use AttributeBuilder.
+attributes if you don't use AttributeBuilder.
 -}
 testAlternatives : Test
 testAlternatives =
@@ -374,7 +365,7 @@ testRemoveClass =
 the specified style. This doesn't seem to be supported by `elm-html-test`
 itself.
 -}
-containsStyle : String -> String -> Query.Single -> Expectation
+containsStyle : String -> String -> Query.Single msg -> Expectation
 containsStyle styleName styleValue html =
     let
         -- This is a bit hack-ish, but the best we can do without support
@@ -393,7 +384,7 @@ containsStyle styleName styleValue html =
                     ++ "'"
 
 
-doesNotContainStyle : String -> String -> Query.Single -> Expectation
+doesNotContainStyle : String -> String -> Query.Single msg -> Expectation
 doesNotContainStyle styleName styleValue html =
     let
         unexpectedText =
@@ -523,21 +514,4 @@ testRemoveStyle =
                     |> vid []
                     |> Query.fromHtml
                     |> containsStyle "position" "absolute"
-        ]
-
-
-all : Test
-all =
-    describe "AttributeBuilder tests"
-        [ testAlternatives
-        , testPlainAttributeBuilder
-        , testAddAttribute
-        , testAddAttributes
-        , testAddClass
-        , testRemoveClass
-        , testApplyClassList
-        , testAddClassList
-        , testAddStyle
-        , testAddStyles
-        , testRemoveStyle
         ]

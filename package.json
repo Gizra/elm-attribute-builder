@@ -9,10 +9,10 @@
   "dependencies": {},
   "devDependencies": {
     "elm": "^0.18.0",
-    "elm-test": "^0.18.0"
+    "elm-test": "=0.18.3"
   },
   "scripts": {
-    "test": "elm-test tests/src/Main.elm --compiler ../node_modules/.bin/elm-make"
+    "test": "elm-test"
   },
   "repository": {
     "type": "git",
