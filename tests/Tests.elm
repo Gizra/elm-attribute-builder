@@ -1,9 +1,9 @@
-module Tests exposing (..)
+module Tests exposing (containsStyle, doesNotContainStyle, hasNone, hasOne, testAddAttribute, testAddAttributes, testAddClass, testAddClassList, testAddStyle, testAddStyles, testAlternatives, testApplyClassList, testPlainAttributeBuilder, testRemoveClass, testRemoveStyle, vid)
 
 import Expect exposing (Expectation)
-import Html exposing (Html, Attribute)
-import Html.Attributes
+import Html exposing (Attribute, Html)
 import Html.AttributeBuilder exposing (..)
+import Html.Attributes
 import Json.Decode exposing (Value)
 import Test exposing (..)
 import Test.Html.Query as Query
@@ -12,7 +12,7 @@ import Test.Html.Selector exposing (..)
 
 vid : List (Html msg) -> List (Attribute msg) -> Html msg
 vid =
-    flip Html.div
+    \b a -> Html.div a b
 
 
 hasOne : List Selector -> Query.Single msg -> Expectation
@@ -45,8 +45,8 @@ testAlternatives =
                         [ classes [ "first-class", "second-class" ] ]
         , test "adding different styles twice uses both" <|
             \_ ->
-                [ Html.Attributes.style [ ( "width", "300px" ) ]
-                , Html.Attributes.style [ ( "height", "400px" ) ]
+                [ Html.Attributes.style "width" "300px"
+                , Html.Attributes.style "height" "400px"
                 ]
                     |> vid []
                     |> Query.fromHtml
@@ -56,8 +56,8 @@ testAlternatives =
                         ]
         , test "adding same style twice uses last value" <|
             \_ ->
-                [ Html.Attributes.style [ ( "width", "300px" ) ]
-                , Html.Attributes.style [ ( "width", "400px" ) ]
+                [ Html.Attributes.style "width" "300px"
+                , Html.Attributes.style "width" "400px"
                 ]
                     |> vid []
                     |> Query.fromHtml
@@ -373,15 +373,16 @@ containsStyle styleName styleValue html =
         expectedText =
             "(" ++ toString styleName ++ "," ++ toString styleValue ++ ")"
     in
-        if (String.contains expectedText (toString html)) then
-            Expect.pass
-        else
-            Expect.fail <|
-                "Did not find style '"
-                    ++ styleName
-                    ++ "', '"
-                    ++ styleValue
-                    ++ "'"
+    if String.contains expectedText (toString html) then
+        Expect.pass
+
+    else
+        Expect.fail <|
+            "Did not find style '"
+                ++ styleName
+                ++ "', '"
+                ++ styleValue
+                ++ "'"
 
 
 doesNotContainStyle : String -> String -> Query.Single msg -> Expectation
@@ -390,15 +391,16 @@ doesNotContainStyle styleName styleValue html =
         unexpectedText =
             "(" ++ toString styleName ++ "," ++ toString styleValue ++ ")"
     in
-        if (String.contains unexpectedText (toString html)) then
-            Expect.fail <|
-                "Found unexpected style '"
-                    ++ styleName
-                    ++ "', '"
-                    ++ styleValue
-                    ++ "'"
-        else
-            Expect.pass
+    if String.contains unexpectedText (toString html) then
+        Expect.fail <|
+            "Found unexpected style '"
+                ++ styleName
+                ++ "', '"
+                ++ styleValue
+                ++ "'"
+
+    else
+        Expect.pass
 
 
 testAddStyle : Test

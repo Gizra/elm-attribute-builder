@@ -1,19 +1,9 @@
-module Html.AttributeBuilder
-    exposing
-        ( AttributeBuilder
-        , attributeBuilder
-        , union
-        , toAttributes
-        , addAttribute
-        , addAttributes
-        , addClass
-        , removeClass
-        , applyClassList
-        , addClassList
-        , addStyle
-        , addStyles
-        , removeStyle
-        )
+module Html.AttributeBuilder exposing
+    ( AttributeBuilder, attributeBuilder, union, toAttributes
+    , addAttribute, addAttributes
+    , addClass, removeClass, applyClassList, addClassList
+    , addStyle, addStyles, removeStyle
+    )
 
 {-| Elm's [Html] module constructs HTML nodes by asking you to provide,
 among other things, a list of HTML attributes. So, you might typically
@@ -33,11 +23,11 @@ that return lists of attributes and combine them together ... perhaps
 something like this:
 
     div
-        ( List.concat
+        (List.concat
             [ computation1 model
             , computation2 user
             , [ class "another-class"
-              , style [("position", "absolute")]
+              , style "position" "absolute"
               ]
             ]
         )
@@ -134,6 +124,7 @@ toAttributes (AttributeBuilder builder) =
         classAttribute =
             if Set.isEmpty builder.classes then
                 []
+
             else
                 [ builder.classes
                     |> Set.toList
@@ -144,13 +135,13 @@ toAttributes (AttributeBuilder builder) =
         styleAttribute =
             if Dict.isEmpty builder.styles then
                 []
+
             else
-                [ builder.styles
-                    |> Dict.toList
-                    |> style
-                ]
+                builder.styles
+                    |> Dict.map style
+                    |> Dict.values
     in
-        classAttribute ++ styleAttribute ++ builder.attributes
+    classAttribute ++ styleAttribute ++ builder.attributes
 
 
 {-| Add an attribute to an attribute builder.
@@ -215,14 +206,15 @@ applyClassList classes (AttributeBuilder builder) =
                 (\( className, include ) accum ->
                     if include then
                         Set.insert className accum
+
                     else
                         Set.remove className accum
                 )
                 builder.classes
                 classes
     in
-        AttributeBuilder
-            { builder | classes = newClasses }
+    AttributeBuilder
+        { builder | classes = newClasses }
 
 
 {-| Like `applyClassList`, but only adds classes, never removes.
@@ -235,14 +227,15 @@ addClassList classes (AttributeBuilder builder) =
                 (\( className, include ) accum ->
                     if include then
                         Set.insert className accum
+
                     else
                         accum
                 )
                 builder.classes
                 classes
     in
-        AttributeBuilder
-            { builder | classes = newClasses }
+    AttributeBuilder
+        { builder | classes = newClasses }
 
 
 {-| Add a value for a style, replacing any previous value for the style with that name.
@@ -271,8 +264,8 @@ addStyles styleList (AttributeBuilder builder) =
                 builder.styles
                 styleList
     in
-        AttributeBuilder
-            { builder | styles = newStyles }
+    AttributeBuilder
+        { builder | styles = newStyles }
 
 
 {-| Remove a style from an `AttributeBuilder`.
