@@ -3,7 +3,7 @@
     "name": "Gizra/elm-attribute-builder",
     "summary": "Build up lists of HTML attributes in a modular manner",
     "license": "MIT",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "exposed-modules": [
         "Html.AttributeBuilder"
     ],
